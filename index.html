@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مركز رفع الملفات</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #0073e6;
+            color: white;
+            padding: 15px;
+            font-size: 24px;
+        }
+        main {
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .upload-section, .files-section {
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #0073e6;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #005bb5;
+        }
+        #filesList {
+            list-style: none;
+            padding: 0;
+        }
+        #filesList li {
+            background: #eee;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #filesList a {
+            text-decoration: none;
+            color: #0073e6;
+            font-weight: bold;
+        }
+        .copy-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .copy-btn:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>مركز رفع الملفات</h1>
+    </header>
+    <main>
+        <section class="upload-section">
+            <h2>رفع الملفات</h2>
+            <input type="file" id="fileInput" multiple accept="image/*">
+            <button onclick="uploadFiles()">رفع الملفات</button>
+            <div id="uploadStatus"></div>
+        </section>
+        <section class="files-section">
+            <h2>ملفاتك المرفوعة</h2>
+            <ul id="filesList"></ul>
+        </section>
+    </main>
+    <script>
+        async function uploadFiles() {
+            const fileInput = document.getElementById('fileInput');
+            const filesList = document.getElementById('filesList');
+            const uploadStatus = document.getElementById('uploadStatus');
+            filesList.innerHTML = '';
+
+            if (fileInput.files.length === 0) {
+                uploadStatus.innerText = 'لم يتم اختيار أي ملف';
+                return;
+            }
+
+            uploadStatus.innerText = 'جاري رفع الملفات...';
+
+            for (let file of fileInput.files) {
+                let formData = new FormData();
+                formData.append("image", file);
+                formData.append("key", "695d77a8253af857f62499172d42b5bd"); // مفتاح API الخاص بك
+
+                try {
+                    let response = await fetch("https://api.imgbb.com/1/upload", {
+                        method: "POST",
+                        body: formData
+                    });
+                    let data = await response.json();
+                    if (data.success) {
+                        let fileURL = data.data.url;
+                        let listItem = document.createElement('li');
+                        listItem.innerHTML = `
+                            <div>
+                                <a href="${fileURL}" target="_blank">رابط الصورة</a>
+                            </div>
+                            <button class="copy-btn" onclick="copyLink('${fileURL}')">نسخ الرابط</button>
+                        `;
+                        filesList.appendChild(listItem);
+                    }
+                } catch (error) {
+                    console.error("خطأ في رفع الملف", error);
+                }
+            }
+
+            uploadStatus.innerText = 'تم الرفع بنجاح!';
+        }
+
+        // وظيفة نسخ الرابط
+        function copyLink(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert("تم نسخ الرابط بنجاح!");
+            }).catch(err => {
+                alert("فشل في نسخ الرابط");
+                console.error("خطأ في النسخ:", err);
+            });
+        }
+    </script>
+</body>
+</html>
